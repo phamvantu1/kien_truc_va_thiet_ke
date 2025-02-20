@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách Sách</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .book-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 900px;
+        }
+
+        .book {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .book:hover {
+            transform: scale(1.05);
+        }
+
+        .btn {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .edit-btn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .add-btn {
+    background-color: #28a745;
+    color: white;
+    margin-bottom: 15px;
+}
+    </style>
+</head>
+<body>
+<h1>Danh sách Sách</h1>
+<button class="btn add-btn" onclick="addBook()">Thêm Sách</button>
+
+<div class="book-container" id="bookList"></div>
+
+<script>
+    async function fetchBooks() {
+        const response = await fetch('http://127.0.0.1:8000/api/books/'); // API GET tất cả sách
+        const books = await response.json();
+        const bookList = document.getElementById('bookList');
+        bookList.innerHTML = '';
+
+        books.forEach(book => {
+            const bookDiv = document.createElement('div');
+            bookDiv.classList.add('book');
+            bookDiv.innerHTML = `
+                    <h3>${book.title}</h3>
+                    <p>Tác giả: ${book.author}</p>
+                    <p>Giá: ${book.price} $</p>
+                    <button class="btn edit-btn" onclick="editBook('${book._id}')" data-id="${book._id}">Sửa</button>
+                    <button class="btn delete-btn" onclick="deleteBook('${book._id}')">Xóa</button>
+                `;
+            bookList.appendChild(bookDiv);
+        });
+    }
+
+    async function deleteBook(id) {
+        if (confirm("Bạn có chắc chắn muốn xóa sách này?")) {
+            await fetch(`http://127.0.0.1:8000/api/delete-book/${id}/`, {method: 'DELETE'});
+            fetchBooks();
+        }
+    }
+
+    function editBook(bookId) {
+        let newTitle = prompt("Nhập tiêu đề mới:");
+        if (newTitle) {
+            fetch(`http://127.0.0.1:8000/api/update-book/${bookId}/`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ title: newTitle })
+            }).then(response => response.json())
+              .then(data => {
+                alert("Cập nhật thành công!");
+                location.reload();
+              })
+              .catch(error => console.error("Lỗi:", error));
+        }
+    }
+
+    function addBook() {
+    let title = prompt("Nhập tiêu đề sách:");
+    let author = prompt("Nhập tên tác giả:");
+    let price = prompt("Nhập giá sách:");7
+
+    if (title && author && price) {
+        fetch('http://127.0.0.1:8000/api/creat_books/', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ title, author, price })
+        }).then(response => response.json())
+          .then(data => {
+            alert("Thêm sách thành công!");
+            fetchBooks(); // Cập nhật danh sách sách sau khi thêm
+          })
+          .catch(error => console.error("Lỗi:", error));
+    }
+}
+
+
+
+    fetchBooks();
+</script>
+</body>
+</html>

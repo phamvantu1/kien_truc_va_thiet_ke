@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 280px;
+            text-align: center;
+        }
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .link {
+            margin-top: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Đăng Ký</h2>
+        <input type="text" id="reg-username" placeholder="Tên đăng nhập">
+        <input type="password" id="reg-password" placeholder="Mật khẩu">
+        <input type="email" id="reg-email" placeholder="Email">
+        <input type="text" id="reg-phone" placeholder="Số điện thoại">
+        <button onclick="register()">Đăng Ký</button>
+        <a href="login.html" class="link">Quay lại Đăng Nhập</a>
+    </div>
+
+    <script>
+        async function register() {
+            const username = document.getElementById("reg-username").value;
+            const password = document.getElementById("reg-password").value;
+            const email = document.getElementById("reg-email").value;
+            const phone = document.getElementById("reg-phone").value;
+
+            const response = await fetch("http://127.0.0.1:8000/api/register/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ username, password, email, phone })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert("Đăng ký thành công!");
+                window.location.href = "user_list.html";
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        }
+    </script>
+</body>
+</html>
