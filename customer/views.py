@@ -15,6 +15,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from rest_framework.authtoken.models import Token
+from rest_framework import status
+
 @api_view(['GET'])
 def get_users(request):
     users = customerUser.objects.all()  # ✅ Gọi model mới
@@ -49,6 +51,30 @@ def user_profile(request):
         return Response(serializer.data)
     except customerUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=404)
+
+
+@api_view(['PUT'])
+def update_user(request, user_id):
+    try:
+        user = customerUser.objects.get(id=user_id)
+    except customerUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = UserSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message': 'User updated successfully', 'data': serializer.data})
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+def delete_user(request, user_id):
+    try:
+        user = customerUser.objects.get(id=user_id)
+        user.delete()
+        return Response({'message': 'User deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+    except customerUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 def user_list(request):

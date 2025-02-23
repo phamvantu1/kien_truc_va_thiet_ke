@@ -1,61 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User List</title>
+    <title>Danh sách người dùng</title>
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        button { padding: 5px 10px; margin: 2px; cursor: pointer; }
+        .edit-btn { background-color: #ffc107; border: none; }
+        .delete-btn { background-color: #dc3545; border: none; color: white; }
     </style>
 </head>
 <body>
-    <h1>User List</h1>
+    <h2>Danh sách người dùng</h2>
     <table>
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Username</th>
+                <th>Tên người dùng</th>
                 <th>Email</th>
-                <th>First Name</th>
-                <th>Last Name</th>
+                <th>Số điện thoại</th>
+                <th>Hành động</th>
             </tr>
         </thead>
-        <tbody id="user-table-body">
-            <!-- Data will be inserted here -->
+        <tbody id="userTable">
+            <!-- Dữ liệu sẽ được chèn vào đây -->
         </tbody>
     </table>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('http://127.0.0.1:8000/api/get-all-users/')
-                .then(response => response.json())
-                .then(data => {
-                    const tableBody = document.getElementById('user-table-body');
-                    data.forEach(user => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${user.id}</td>
-                            <td>${user.username}</td>
-                            <td>${user.email}</td>
-                            <td>${user.first_name}</td>
-                            <td>${user.last_name}</td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                })
-                .catch(error => console.error('Error fetching user data:', error));
-        });
+        async function fetchUsers() {
+            try {
+                let response = await fetch("http://127.0.0.1:8000/api/get-all-users/");
+                let users = await response.json();
+                loadUsers(users);
+            } catch (error) {
+                console.error("Lỗi khi tải dữ liệu người dùng:", error);
+            }
+        }
+
+        function loadUsers(users) {
+            const table = document.getElementById("userTable");
+            table.innerHTML = "";
+            users.forEach((user, index) => {
+                let row = `<tr>
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>${user.phone}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editUser(${user.id})">Sửa</button>
+                        <button class="delete-btn" onclick="deleteUser(${user.id})">Xóa</button>
+                    </td>
+                </tr>`;
+                table.innerHTML += row;
+            });
+        }
+
+        function editUser(userId) {
+            let newName = prompt("Nhập tên mới:");
+            if (newName) {
+                // Gửi yêu cầu cập nhật lên API
+                fetch(`http://127.0.0.1:8000/api/update_user/${userId}/`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: newName })
+                }).then(response => response.json())
+                .then(() => fetchUsers())
+                .catch(error => console.error("Lỗi khi cập nhật người dùng:", error));
+            }
+        }
+
+        function deleteUser(userId) {
+            if (confirm("Bạn có chắc muốn xóa người dùng này?")) {
+                // Gửi yêu cầu xóa lên API
+                fetch(`http://127.0.0.1:8000/api/delete_user/${userId}/`, {
+                    method: "DELETE"
+                }).then(() => fetchUsers())
+                .catch(error => console.error("Lỗi khi xóa người dùng:", error));
+            }
+        }
+
+        fetchUsers();
     </script>
 </body>
 </html>
